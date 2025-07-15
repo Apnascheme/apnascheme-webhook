@@ -3,17 +3,17 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// ✅ FIXED: Support both JSON and URL-encoded payloads
+// In-memory session store (not for production use)
+const sessions = {};
+
 app.use(bodyParser.json());
 
-// TEMP route to handle GET test requests
+// Test route to validate webhook with GET (important for Gupshup)
 app.get('/webhook', (req, res) => {
   res.status(200).send('Webhook GET working ✅');
 });
 
-// In-memory session store (replace with DB in production)
-const sessions = {};
-
+// Main webhook handler (POST)
 app.post('/webhook', (req, res) => {
   const payload = req.body;
   const phone = payload.sender?.phone || 'unknown';
@@ -80,7 +80,7 @@ app.post('/webhook', (req, res) => {
       break;
 
     case 'ask_occupation':
-      if (["1", "2", "3", "4", "5", "6"].includes(message)) {
+      if (['1', '2', '3', '4', '5', '6'].includes(message)) {
         session.data.occupation = message;
         session.step = (message === '1' || message === '2') ? 'ask_guardian_income' : 'ask_income';
         reply = (message === '1' || message === '2') ? "What is your guardian's annual income (INR)?" : "What is your annual household income (INR)?";
@@ -166,12 +166,10 @@ app.post('/webhook', (req, res) => {
       break;
   }
 
-  res.json({
-    type: 'message',
-    text: reply
-  });
+  res.json({ type: 'message', text: reply });
 });
 
+// Start the server
 app.listen(port, () => {
   console.log(`ApnaScheme Webhook running on port ${port}`);
 });
