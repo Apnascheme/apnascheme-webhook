@@ -3,10 +3,12 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// ✅ FIXED: Support both JSON and URL-encoded payloads
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 // In-memory session store (replace with DB in production)
 const sessions = {};
-
-app.use(bodyParser.json());
 
 app.post('/webhook', (req, res) => {
   const payload = req.body;
